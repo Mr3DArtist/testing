@@ -811,35 +811,40 @@ header.site-header {
   background: inherit;
   clip-path: polygon(var(--b0, 35%) 0, var(--b1, 65%) 0, var(--ax, 50%) 100%);
 }
-/* THE ACTIVE CLIP — the bubble fills with the brand gradient and the gradient
-   travels along it (and through its tail).
-   ⛔ The sweep is px-based — 240px is exactly one tile of `background-size`, so the
-     loop is seamless — and NOT the page's %-based `glowing`. The tail inherits this
-     background, and a percentage resolves against the TAIL's own 15px box: the two
-     would be showing different slices of the gradient and the join would break
-     visibly. In px the tail only has to add its own offset (--tip-x, set by
-     aimTips) to line up to the pixel. */
+/* THE ACTIVE CHIP — FLAT AZURE (owner, 2026-10-11: *"remove chip gradients and use flat
+   colors for active/inactive/hover states"*).
+   ⛔ WHAT WAS HERE: `background-image: linear-gradient(90deg,#0096ff,#22d3ee,#3b82f6,
+   #22d3ee,#0096ff)` at `background-size:240px` with `animation: tipFlow 6s linear infinite`
+   — a gradient that TRAVELLED along the chip and, through `background: inherit` on the
+   beak, through its pointer as well. That pair of declarations (image + size + repeat +
+   the animation, and the tail's copy of it below) is what is removed. The fill is now the
+   gradient's own brand stop, so the chip reads the same colour it averaged before.
+   ⛔ THE SHORTHAND IS DELIBERATE: the resting `.hm-tip` sets its fill with `background:`,
+   and `background-image` alone would leave that light-grey ink mix showing underneath.
+   `background: #0096ff` replaces the whole background in one declaration.
+   ⛔ KEPT, because none of it is a gradient: the dark `--bg`-family text (contrast on flat
+   azure is higher than it was on the lightest stop of the sweep), the two drop-shadows —
+   including the azure glow that wraps the chip and its pointer as one object — the chip's
+   size, padding, radius, pointer beak, click behaviour and the `active` selection state.
+   ⛔ THE INACTIVE AND HOVER STATES ALREADY CARRIED NO GRADIENT: the resting chip is a flat
+   `color-mix(in srgb, var(--ink) 85%, var(--bg))` and hover is the flat 2px `#0096ff` ring
+   (`tipRing`, which expands and fades — a transform/opacity animation, not a gradient).
+   Both are untouched, so all three states are now flat by construction. */
 .hero-media .hm-tip.active {
   color: #041430;
-  background-image: linear-gradient(90deg, #0096ff, #22d3ee, #3b82f6, #22d3ee, #0096ff);
-  background-size: 240px 100%;
-  background-repeat: repeat;
-  animation: tipFlow 6s linear infinite;
+  background: #0096ff;
   /* the glow is a SECOND drop-shadow, not a box-shadow, so the halo wraps the tail
      too — one object, lit as one object */
   filter: drop-shadow(0 6px 14px color-mix(in srgb, #000 45%, transparent))
           drop-shadow(0 0 16px color-mix(in srgb, #0096ff 65%, transparent));
 }
-.hero-media .hm-tip.active::after {
-  --flow-x: var(--tip-x, 0px);
-  /* the same offset as a STATIC value as well: the animation overrides it while
-     it runs, but with prefers-reduced-motion (animation:none) this is what keeps
-     the tail's slice of the gradient lined up with the body above it. Without it
-     both elements read background-position:0 and the join is off by the tail's
-     own offset — 44px of the wrong colour. */
-  background-position: var(--flow-x, 0px) 0;
-  animation: tipFlow 6s linear infinite;
-}
+/* ⛔ THE TAIL NEEDS NO RULE OF ITS OWN ANY MORE. It carried a second copy of `tipFlow`
+   plus a `--flow-x` offset whose only job was to keep the travelling gradient's phase
+   lined up between the 15px tail box and the body above it (a percentage or an unoffset
+   px value resolves against the tail's own box, so the two showed different slices of the
+   same gradient). A flat fill has no phase to line up — `background: inherit` on
+   `.hm-tip::after` now simply hands the tail the same solid azure as the body, at any
+   width, with nothing to drift. */
 @keyframes tipFlow {
   from { background-position: var(--flow-x, 0px) 0; }
   to   { background-position: calc(var(--flow-x, 0px) - 240px) 0; }
@@ -1678,20 +1683,12 @@ header.site-header {
 /* ============================================================
    HERO + SECTION PARTICLE PATTERN BACKGROUNDS
    ============================================================ */
-/* Interactive mouse-follow background glow */
-.mouse-glow {
-  position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none;
-  width: 520px; height: 520px; margin: -260px 0 0 -260px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, var(--glow-tertiary), transparent 62%),
-    radial-gradient(circle, var(--glow-accent), transparent 45%);
-  opacity: .55;
-  mix-blend-mode: normal;
-  transition: opacity .3s ease;
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) { .mouse-glow { display: none; } }
+/* Interactive mouse-follow background glow — 🗑 REMOVED (owner, 2026-10-11: *"remove
+   mouse-hover/mouse-follow glow from BACKGROUND only"*). This was the fixed 520×520
+   disc that followed the cursor behind the whole page; the element, its second copy of
+   this rule (further down) and the rAF/mousemove pair that drove it are all gone. The
+   static `body::before` ambient glows and the particle field are NOT this element and
+   are untouched. */
 
 .hero .container,
 .section > .container,
@@ -2689,15 +2686,8 @@ h1,h2,h3,h4,.site-header .brand,.section-title,.g-title,.g-name,.acc-head,.vb-ve
 /* ============================================================
    GOBOS MASTER EFFECTS PORT
    ============================================================ */
-/* Mouse glow */
-.mouse-glow{
-  position:fixed;top:0;left:0;z-index:-1;pointer-events:none;
-  width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;
-  background:radial-gradient(circle,var(--glow-tertiary),transparent 62%),
-             radial-gradient(circle,var(--glow-accent),transparent 45%);
-  opacity:.5;will-change:transform;transition:opacity .3s ease;
-}
-@media (prefers-reduced-motion:reduce){.mouse-glow{display:none}}
+/* Mouse glow — 🗑 REMOVED, see the note on the first copy of this rule. The gobos block
+   it sat in is otherwise intact (the reveal rules below are untouched). */
 /* Reveal on scroll */
 .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
 .reveal.visible{opacity:1;transform:none}
@@ -2731,11 +2721,24 @@ h1,h2,h3,h4,.site-header .brand,.section-title,.g-title,.g-name,.acc-head,.vb-ve
    background-size:400% only a quarter of the gradient is on screen at a time, so
    a gradient that merely STARTED and ENDED azure showed cyan/blue almost always
    and the brand azure was off-screen for most of the sweep.
-   First and last stop are the same, so the sweep still loops seamlessly. */
+   ⛔⛔ THE SWEEP IS GONE (owner, 2026-10-11: *"remove animation of HERO CLIPS background
+   glow gradient and keep the glow static"*). This `::before` is the halo BEHIND the hero
+   clip — the blurred 18px gradient wash that sits at z-index:-1. It carried
+   `animation: glowing 20s linear infinite`, which swept the gradient's background-position
+   across it. That declaration is the only thing removed: the gradient, the 400% size, the
+   blur, the inset and the opacity are untouched, and a gradient animation's resting frame
+   IS `background-position: 0 0` — so the halo now shows exactly the frame it used to start
+   on, held still.
+   ⛔ NOT THE SAME LAYER AS THE OUTLINES, which is why this is a one-declaration change:
+   the moving rings on the hero's two side clips are `.hero-cards > .hero-side::before`
+   (a mask-composite conic ring driven by `fxOrbit`), the nav pills' and badges' rings are
+   `.hm-nav::before` / `.hm-badge::before` (mask-composite, `glowing`), and none of those
+   are this selector. `glowing` itself stays in the stylesheet and still runs on
+   `.btn-glow::before`, the rainbow halo on the primary CTAs. */
 .hero-media::before{
   content:'';position:absolute;top:-10px;left:-10px;width:calc(100% + 20px);height:calc(100% + 20px);border-radius:inherit;
   background:linear-gradient(45deg,#0096ff,#22d3ee,#0096ff,#3b82f6,#0096ff);
-  background-size:400%;filter:blur(18px);z-index:-1;opacity:.4;animation:glowing 20s linear infinite;pointer-events:none;
+  background-size:400%;filter:blur(18px);z-index:-1;opacity:.4;pointer-events:none;
 }
 .dark .hero-media::before{opacity:.6}
 .hero-media{position:relative}
@@ -4684,6 +4687,32 @@ html.dark #workflow .feature-text > .quickfog-outer::before {
   background-position: 120% 0, 0 0, 0 0 !important;
 }
 
+/* ------------------------------------- 5b. the compare pair's MOVING OUTLINE, held still
+   Owner, 2026-10-11: *"remove moving outline animation ONLY from Old Way versus With Auto
+   Face MoCap Pro comparison section … Keep static center divider, patterns, fading,
+   content, static edges. Do not disable other outline animations especially
+   hero/topbar."*
+   ⛔ THE LAYER THIS TARGETS IS THE INJECTED `.fx-ring`, identified by reading the source
+   rather than by guessing at the screenshot: `#cardFxLayers` lists `.compare-card` in its
+   TARGETS, so each half is a `card-fx` and gets three real spans — `.fx-dots` (the dot
+   tile), `.fx-pool` (the cursor pool) and `.fx-ring` (the ring). Only the ring orbits: it
+   is the shared `fxOrbit` conic arc, `@keyframes fxOrbit { to { --fxA: 360deg } }`, the
+   same primitive the topbar, the Shapekeys cards and the two hero side clips run.
+   ⛔ SO THE RULE IS A FREEZE, NOT A DELETION. `animation: none` stops `--fxA` at its
+   registered initial value of `0deg`; the conic gradient, the 1px padding band, the two
+   `linear-gradient(#000 0 0)` masks with their `xor`/`exclude` composite and the three
+   drop-shadow glow layers are all untouched, so the outline is still painted on the
+   perimeter — it is a STATIC edge now instead of a travelling arc.
+   ⛔ SCOPED BY `#workflow .compare-card > .fx-ring` AND NOTHING ELSE. The topbar's ring
+   (`.card-fx > .fx-ring` on `.site-header`), the hero clip's ring, the hero side clips'
+   mirrored rings (`.hero-cards > .hero-side::before`) and the feature text cards keep
+   their `fxOrbit` untouched — and they keep it at the 24Hz the authored cap samples them
+   at, not at the display's rate.
+   ⛔ WHAT IS DELIBERATELY LEFT ALONE ON THESE TWO HALVES: the `.fx-dots` pattern (it keeps
+   `dotWave`/`patternTileLoop`), the `.fx-pool` cursor pool, the quickfog `--edge-fade`
+   masks, the centre divider and every word of the content. */
+#workflow .compare-card > .fx-ring { animation: none !important; }
+
 /* ------------------------------------- 7. the two TIME CHIPS, onto the page theme
    Owner: *"also update these two to match the page theme"*, and on being asked which two:
    **the two time chips** — "~ 6 hours" and "~ 2 minutes".
@@ -5492,8 +5521,10 @@ html.dark .hero-copy-card:hover {
 <!-- ============================================================ -->
 <canvas id="interactiveBg" aria-hidden="true"></canvas>
 
-<!-- Interactive mouse-follow background glow -->
-<div class="mouse-glow" aria-hidden="true"></div>
+<!-- 🗑 REMOVED: `<div class="mouse-glow" aria-hidden="true"></div>` — the page-wide
+     cursor spotlight that sat here, between the particle canvas and the noscript block.
+     Owner, 2026-10-11: *"remove mouse-hover/mouse-follow glow from BACKGROUND only"*.
+     The canvas above it is the particle field and is NOT part of that removal. -->
 <noscript><style>.g-card{opacity:1;transform:none}.reveal{opacity:1;transform:none}</style></noscript>
 <!-- ⛔ DARK IS THE ONLY THEME (owner, 2026-10-11: *"remove light theme and topbar theme
      switch … make dark mode the sole supported active theme"*). The `<html>` tag carries
@@ -7277,26 +7308,27 @@ html.dark .hero-copy-card:hover {
     }
   })();
 
-  /* ---------- 0. Mouse-follow background glow ---------- */
-  var glow = document.querySelector('.mouse-glow');
-  /* ⛔ the CSS already hides .mouse-glow under prefers-reduced-motion, but the rAF
-     chain still woke on every mousemove and animated an element nobody could see */
-  var calmMotion = false;
-  try { calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-  if (glow && !calmMotion) {
-    var gX = 0, gY = 0, tX = 0, tY = 0, gRaf = null;
-    function glowTick() {
-      gX += (tX - gX) * 0.95;
-      gY += (tY - gY) * 0.95;
-      glow.style.transform = 'translate(' + gX + 'px,' + gY + 'px)';
-      if (Math.abs(gX - tX) < 0.4 && Math.abs(gY - tY) < 0.4) { gRaf = null; return; } // idle → stop
-      gRaf = requestAnimationFrame(glowTick);
-    }
-    window.addEventListener('mousemove', function (e) {
-      tX = e.clientX; tY = e.clientY;
-      if (!gRaf) gRaf = requestAnimationFrame(glowTick);
-    }, { passive: true });
-  }
+  /* ---------- 0. Mouse-follow background glow — 🗑 REMOVED ----------
+     Owner, 2026-10-11: *"remove mouse-hover/mouse-follow glow from BACKGROUND only"*.
+     This block was the page-wide cursor spotlight: it selected `.mouse-glow` (the fixed
+     520×520 radial-gradient disc pinned to the viewport at z-index:-1), ran a rAF chain
+     with a 0.95-per-frame easing, and wrote `transform` on every frame of every mousemove.
+     ⛔ REMOVED WITH IT, and this is the part that is easy to leave behind: the
+     `mousemove` listener itself. The element was pointer-transparent, so the only thing
+     that listener ever did was feed this loop — with the disc gone it would have been an
+     event handler and a per-move wake-up animating nothing.
+     ⛔ NOT REMOVED, deliberately — the owner named the BACKGROUND spotlight only:
+       · `body::before` (the two static ambient brand glows behind everything),
+       · the particle field (`#interactiveBg`) AND its cursor repulsion — the field's own
+         `mousemove`/`mouseout` handlers further down this file are still the only thing
+         that makes a node flee the pointer,
+       · every per-card and per-control hover glow: the `.fx-pool` cursor pools on the
+         cards, `html.dark .price-card::after`, `.offer-band::after`, the `ringOut` hover
+         rings, the `btnShine` sheen and the three gleam layers on the buttons. Those are
+         hover effects on individual controls, not a background follow.
+     ⛔ `calmMotion` (the reduced-motion probe that existed only to skip this loop) is gone
+     with it — nothing else in this script read it. The quick nav and the carousel each
+     test the preference inline, and the clip-bar block keeps its own copy as `CALM`. */
 
   /* ---------- 1. Theme toggle + localStorage — 🗑 DELETED ----------
      Owner, 2026-10-11: *"remove light theme and topbar theme switch … remove theme-switch
@@ -9282,6 +9314,306 @@ html.dark .hero-copy-card:hover {
     }
   }
 
+  /* ------------------------------------------------------------ 4c. THE 24Hz AUTHORED CAP
+     ⛔⛔ WHAT THIS IS FOR. Every animation on this page that repaints on the MAIN THREAD
+     was being sampled by the browser once per display frame — 60, 120 or 144 times a
+     second — for effects whose design is a slow ambient loop. This takes those over and
+     samples them 24 times a second instead: the same picture, 2.5× less repainting on a
+     60Hz screen and 6× less on a 144Hz one.
+     ⛔⛔ HOW IT PRESERVES DURATION, EASING AND PHASE, WHICH IS THE WHOLE PROBLEM.
+     `Element.getAnimations()` returns the CSS animations themselves, as objects, and a
+     CSS animation can be PAUSED and then SEEKED by writing `currentTime`. So each
+     animation is paused once and, on every 24Hz tick, put at "the phase it was at when
+     this took it over, plus the time that has actually elapsed since". Consequences, all
+     of them deliberate:
+       · the keyframes are still the browser's, evaluated at a real time inside the
+         animation — so the easing curve, the multi-keyframe cadence and the iteration
+         count are the original ones, NOT a `steps()` approximation of them;
+       · duration is unchanged: phase advances 1ms per 1ms of wall clock (the elapsed time
+         is real, only the SAMPLING is at 24Hz);
+       · phase is unchanged at takeover, because the seed is the animation's OWN
+         `currentTime` — two elements that were in step (the mirrored `.side-row` outline
+         masks, the phase-offset card rings) stay in step, and the per-element
+         `animation-delay: -1.4s` offsets stay exactly as authored;
+       · nothing is restarted, so nothing flashes back to its first keyframe.
+     ⛔⛔ EVERY AUTHORED CSS KEYFRAME ANIMATION IS IN THE LIST (owner: *"cap EVERYTHING at
+     24fps, not selective costly animations"*). The earlier pass kept only the ones that
+     repaint on the main thread and left the composited ones native on the grounds that
+     they were free; that is not the instruction, and it is not the whole truth either —
+     a composited animation still costs the compositor a frame and still costs a style
+     update whenever anything else about the element changes. THE HONEST TRADE, stated
+     here rather than discovered later: taking a composited loop over moves its per-frame
+     cost OFF the compositor and ONTO the main thread as a JS seek at 24Hz. It is a
+     deliberate trade the owner asked for (fewer visual updates per second, on one clock,
+     page-wide) and it is NOT free — see the note at the bottom of this section.
+     ⛔ WHAT IS *NOT* IN THE LIST: CSS TRANSITIONS. They are a different object type
+     (`CSSTransition`, with `transitionProperty` and no `animationName`), they are
+     interaction feedback measured in tenths of a second, and pausing one defers the
+     `transitionend` that a stylesheet or a script may be waiting on. That boundary is
+     reported in the section note below rather than silently claimed.
+     ⛔ GATES. An animation is frozen (not seeked) while anything above it carries
+     `afx-off` — the page's existing off-screen gate, which pauses exactly those subtrees
+     through `animation-play-state`. That keeps the two mechanisms saying the same thing
+     instead of fighting, and keeps the cap's phase semantics identical to the gate's: the
+     phase advances only while the effect is actually being shown. `prefers-reduced-motion`
+     is left completely alone — the stylesheet has already removed most of these, and a
+     visitor who asked for less motion is not owed a different frame rate on what is left. */
+
+  /* ⛔ THE COMPLETE SET OF `@keyframes` THIS STYLESHEET AUTHORS — all 24 of them, read out
+     of the stylesheet rather than guessed, grouped by why they cost something:
+       · main-thread repaint — `seamOut` (background-size + box-shadow on every divider),
+         `patternTileLoop`/`dotWave`/`featureEdgeWave` (background-position and
+         mask-position on the dot tiles, including the two MIRRORED workflow side rows),
+         `fxOrbit`/`badgeSpin`/`gleamAngle` (registered custom properties: a style recalc
+         plus a gradient repaint per frame), `glowing` (background-position under a blur),
+         `cardSheen`, `pulse`, `latestBlink`, `clipMotifDraw`;
+       · composited transform/opacity — `btnShine`, `hmDriftNext`, `hmDriftPrev`,
+         `gleamShimmer`, `gleamBreathe`;
+       · interaction feedback — `ringOut`, `tipRing`, `tipFlow`;
+       · finite entrances — `fadeUp`, `horizonRise`, `seamOpen`, `seamOpenCentre`.
+     ⛔ NOTHING IS EXCLUDED FOR BEING COMPOSITED. The five in the second group are the
+     trade described above, taken knowingly. */
+  var CAP24_NAMES = {
+    seamOut: 1, patternTileLoop: 1, dotWave: 1, featureEdgeWave: 1,
+    fxOrbit: 1, badgeSpin: 1, glowing: 1, cardSheen: 1, pulse: 1, latestBlink: 1,
+    gleamAngle: 1, gleamShimmer: 1, gleamBreathe: 1,
+    btnShine: 1, hmDriftNext: 1, hmDriftPrev: 1,
+    clipMotifDraw: 1, ringOut: 1, tipRing: 1, tipFlow: 1,
+    fadeUp: 1, horizonRise: 1, seamOpen: 1, seamOpenCentre: 1
+  };
+  /* ⛔ THE ONE COMPOSED PAIR, AND HOW ITS SECOND TRACK IS KEPT HONEST. Every gleam layer
+     declares its animation TWICE — `gleamAngle/…linear infinite` and the same name again
+     `…linear infinite reverse paused` — and the stylesheet starts the second track on
+     `:is(:hover, :focus-visible)` (`animation-play-state: running, running`). The marker
+     for that track is `direction: reverse`, which nothing else in this stylesheet uses.
+     A reversed record is therefore given a GATE instead of being advanced
+     unconditionally: it advances only while its host is actually hovered or focus-visible,
+     and freezes the moment the pointer leaves — which is exactly what the stylesheet does
+     to it, at exactly the phase it had reached. `animation-composition: add` composes the
+     two contributions as before, because both are still the same animations on the same
+     element, only sampled on one clock. */
+  var CAP24_REVERSED_ON_HOVER = 1;
+  var hoverNone = false;
+  try { hoverNone = window.matchMedia('(hover: none)').matches; } catch (e) {}
+  var CAP24_MS = 1000 / 24;
+  /* ⛔ the same one-nanosecond tolerance the particle field uses, for the same reason:
+     1000/24 divides into no display's frame period, and an exact comparison drops a tick
+     every few frames and quietly turns 24 into ~20. */
+  var CAP24_EPS = 1e-6;
+  /* ⛔ and the same bounded catch-up: a throttled tab, a long task or a breakpoint can
+     hand this a gap of hundreds of ms, and advancing an ambient loop by all of it at once
+     is a visible jump. Five ticks is the bound. */
+  var CAP24_MAX_DT = CAP24_MS * 5;
+  var capList = [], capRaf = 0, capLast = -1, capCalm = false;
+  var CAP24_OK = !!(window.Element && Element.prototype && Element.prototype.getAnimations) &&
+    typeof document.getAnimations === 'function';
+  try { capCalm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  /* ⛔ THE SHARED 24Hz SCHEDULER. One rAF for however many consumers, dispatching at most
+     once per 41.67ms and handing each callback the real elapsed time (bounded), so a
+     consumer never has to look at a clock of its own and two consumers cannot drift
+     apart. It runs only while the document is visible and at least one subscriber
+     remains; `visibilitychange` stops and restarts it. */
+  var tick24Cbs = [];
+  function tick24Frame(t) {
+    tick24Raf = requestAnimationFrame(tick24Frame);
+    if (typeof t !== 'number' || !isFinite(t)) t = nowMs24();
+    var dt;
+    if (tick24Last < 0) { tick24Last = t; dt = 0; }
+    else {
+      dt = t - tick24Last;
+      if (dt < CAP24_MS - CAP24_EPS) return;      // the cap: no work, no clock move
+      tick24Last = t;
+      if (dt > CAP24_MAX_DT) dt = CAP24_MAX_DT;
+    }
+    for (var i = 0; i < tick24Cbs.length; i++) {
+      try { tick24Cbs[i](dt, t); } catch (e) {}
+    }
+  }
+  var tick24Raf = 0, tick24Last = -1, capUnsub = null;
+  function nowMs24() {
+    return (window.performance && window.performance.now) ? window.performance.now() : Date.now();
+  }
+  function tick24Start() {
+    if (tick24Raf || !tick24Cbs.length || document.hidden) return;
+    tick24Last = -1;                              // a resume is a fresh start, not a debt
+    tick24Raf = requestAnimationFrame(tick24Frame);
+  }
+  function tick24Stop() {
+    if (tick24Raf) { cancelAnimationFrame(tick24Raf); tick24Raf = 0; }
+    tick24Last = -1;
+  }
+  function every24(fn) {
+    if (typeof fn !== 'function') return function () {};
+    tick24Cbs.push(fn);
+    tick24Start();
+    return function () {
+      for (var i = 0; i < tick24Cbs.length; i++) if (tick24Cbs[i] === fn) { tick24Cbs.splice(i, 1); return; }
+    };
+  }
+  AFMP.every24 = every24;
+
+  /* ⛔ AN ANIMATION IS FROZEN WHILE ANY ANCESTOR IS `afx-off` — the same condition the
+     stylesheet itself pauses on. `closest` is a class test up the tree, not a style
+     resolve, so it is safe to run per element per tick. */
+  function capFrozen(el) {
+    while (el) {
+      if (el.nodeType === 1 && el.classList && el.classList.contains('afx-off')) return true;
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  /* ⛔ ADOPTION. `document.getAnimations()` is one call for the whole document, pseudos
+     included, and it is run on the page's LAYOUT-CHANGE beats (the sentinel ladder's
+     coalesced rebuild: start, load, a settled resize, a tab or accordion changing the
+     document) rather than per frame — a panel that was `display:none` has no animations
+     to adopt until it opens, and that is exactly when the ladder rebuilds. */
+  function capAdopt() {
+    if (!CAP24_OK || capCalm) return;
+    var all;
+    try { all = document.getAnimations(); } catch (e) { return; }
+    for (var i = 0; i < all.length; i++) {
+      var a = all[i];
+      if (!a || a.__cap24) continue;
+      if (!a.animationName || !CAP24_NAMES[a.animationName]) continue;
+      /* ⛔⛔ NOTHING IS SKIPPED FOR BEING PAUSED, AND THAT IS THE WHOLE POINT OF THE
+         `capFrozen` TEST BELOW. An element that is off screen carries `afx-off`, whose
+         rule pauses its animations through `animation-play-state` — so at load, which is
+         when most of a 15000px page is off screen, the great majority of these are
+         PAUSED. Reading that as "not running, leave it alone" was a defect with a
+         measurable shape: 9 of the 9 `featureEdgeWave` outlines and 15 of the 19
+         `fxOrbit` rings were never adopted at all, and the first time the visitor
+         scrolled one into view the stylesheet set it running again and it ran at the
+         display's rate for the rest of the session. Adopting a paused animation is safe
+         and is what the gate semantics want: the seed is its frozen phase, and
+         `capAdvance` does not touch a record whose element is gated — so it stays exactly
+         where the gate left it, and starts advancing from there when the gate lifts.
+         ⛔ The adoption list is an explicit allowlist of always-on loops, so this cannot
+         pick up a track the stylesheet is deliberately holding paused for its own
+         reasons — those are different animation names (`gleamAngle`'s reversed second
+         track) and are not in it. */
+      var el = a.effect && a.effect.target;
+      if (!el) continue;
+      var ct = a.currentTime;
+      if (typeof ct !== 'number' || !isFinite(ct)) continue;
+      /* ⛔ A FINITE ANIMATION THAT HAS ALREADY FINISHED IS LEFT ALONE: there is no frame
+         left in it to sample, and pausing one at its end would pin a fill state that the
+         stylesheet may be expecting to release when the class that started it goes. One
+         that is still RUNNING is adopted normally — it finishes on the cap's clock instead
+         of the display's, and NOTHING LISTENS FOR ITS END: there is no `animationend`,
+         `animationiteration` or `.finished` handler anywhere in this document (checked in
+         the source, not assumed), so a late finish event reaches nobody. */
+      var timing = null;
+      try { timing = a.effect.getTiming(); } catch (e) { timing = null; }
+      if (timing && timing.iterations !== Infinity && a.playState === 'finished') continue;
+      /* the seed is the animation's OWN phase — this is what keeps a mirrored pair and a
+         phase-offset ring row exactly where they were */
+      var rec = { a: a, el: el, t: ct, gate: null };
+      /* ⛔ the composed pair's hover track — see CAP24_REVERSED_ON_HOVER above */
+      if (CAP24_REVERSED_ON_HOVER && timing && String(timing.direction) === 'reverse' && !hoverNone) {
+        (function (host) {
+          rec.gate = function () {
+            return !!(host && host.matches && host.matches(':hover, :focus-visible'));
+          };
+        })(el.parentNode);
+      }
+      a.__cap24 = true;
+      try { a.pause(); a.currentTime = ct; } catch (e) { a.__cap24 = false; continue; }
+      capList.push(rec);
+    }
+    /* ⛔ the scheduler is registered LAZILY, on the first animation that is actually
+       adopted: a page with nothing to advance should not be waking up 60 times a second
+       to iterate an empty list. */
+    if (capList.length && !capUnsub) capUnsub = every24(capAdvance);
+  }
+
+  /* ⛔ THE ONE FUNCTION THAT ADVANCES THEM. It only ever moves a record forward by the
+     real elapsed time this tick, and only while the record is neither hidden, gated, nor
+     waiting for a hover it is not getting.
+     `pause()` is re-asserted whenever the browser has started one of them again (the gate
+     lifting sets `animation-play-state: running` from the stylesheet), and because the
+     seek is absolute — `rec.t`, not a delta from wherever the element happens to be — a
+     frame of native advance between the two is corrected rather than accumulated.
+     ⛔ A RECORD WHOSE ANIMATION HAS GONE IS DROPPED. The page removes and re-creates
+     animations constantly — every hover ring, every tab switch, every `fadeUp` on a panel
+     that is re-shown — and a removed `CSSAnimation` reports `playState: 'idle'` with a null
+     `currentTime`. Writing to one would be a no-op at best; dropping it keeps the list
+     proportional to what is actually on the page instead of to everything ever seen. */
+  function capAdvance(dt) {
+    for (var i = 0; i < capList.length; i++) {
+      var rec = capList[i];
+      if (rec.a.playState === 'idle') { rec.a.__cap24 = false; capList.splice(i, 1); i--; continue; }
+      if (rec.gate && !rec.gate()) continue;      // the composed pair's hover track, un-hovered
+      if (capFrozen(rec.el)) continue;
+      rec.t += dt;
+      try {
+        if (rec.a.playState !== 'paused') rec.a.pause();
+        rec.a.currentTime = rec.t;
+      } catch (e) { rec.a.__cap24 = false; capList.splice(i, 1); i--; }
+    }
+  }
+
+  if (CAP24_OK && !capCalm) {
+    /* ⛔ HOVER CREATES ANIMATIONS, so hover is a second adoption trigger — coalesced to
+       one rAF per burst, exactly like the layout beat. `ringOut` on a card, `tipRing` on a
+       bubble and the gleam pair's second track do not exist until the pointer arrives, and
+       the layout-beat scan would never see them on a page that is not changing size. It is
+       a delegated listener on the document (one registration, capture) and it fires on
+       pointer ENTER only, not per move. */
+    var capPtrRaf = 0;
+    document.addEventListener('pointerover', function () {
+      if (capPtrRaf) return;
+      capPtrRaf = requestAnimationFrame(function () { capPtrRaf = 0; capAdopt(); });
+    }, { passive: true, capture: true });
+    /* ⛔ hidden → stopped, and coming back is a FRESH clock, not a debt: the phase these
+       hold is the time the effect was on screen, which is exactly what the `afx-off` gate
+       already does to the same animations. Restarting the frame instead of letting a
+       stale timestamp through is what stops a background tab from teleporting every
+       capped loop by a minute's worth of catch-up. */
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) tick24Stop();
+      else { tick24Stop(); tick24Start(); }
+    });
+  }
+
+  /* ⛔⛔ WHAT NO PAGE CAN CAP FROM HERE, stated plainly so nobody reads the list above as
+     "the page is now 24fps":
+       · `<video>` — the decoder paints at the media's own frame rate, and the compositor
+         presents it at the display's. Seeking per frame, retiming `playbackRate`, or
+         re-encoding the files would each change the clips themselves, which is the one
+         thing this pass may not do. The clip-bar fill is a Web Animation driven from the
+         video's own `currentTime` and is composited, so it is neither capped nor costly.
+       · ANIMATED GIFs — decoded by the image pipeline, with no API to seek or retime one.
+         The page's existing answer (a canvas poster while a GIF is off screen) is
+         unchanged and is not a rate cap either.
+       · the WORDMARK's frame callback — the CALLBACK is the media's, and it still arrives
+         per video frame; what is capped is the DOM WRITE it performs (`sync()` is gated to
+         24Hz and samples `v.currentTime` when it runs). See `brandStrokeSync`.
+       · the PARTICLE FIELD — already caps ITSELF at 24 (its own gate, untouched here).
+     ⛔⛔ AND THE ONE DELIBERATE BOUNDARY LEFT IN THE AUTHORED SET: CSS TRANSITIONS.
+     Not capped, and this is a decision rather than an omission. A transition is a different
+     object (`CSSTransition`: `transitionProperty`, no `animationName`), it is interaction
+     feedback measured in tenths of a second — `.3s` on a chip, `.45s` on a background,
+     `.8s` on the gleam — and the safe lifecycle for pausing and resuming one does not
+     exist from here: a transition is created on the style change that starts it and
+     destroyed when it ends, so a sampler would have to adopt, seek and release objects on
+     the same events that are driving the interaction, and pausing one DEFERS the
+     `transitionend` that ends it. A visitor moving the pointer across a control would be
+     the thing that pays for it. So every transition on the page keeps the display's rate,
+     and that is the boundary — claimed here, not glossed over.
+     ⛔⛔ THE TRADE THIS PASS MAKES, HONESTLY. Three of the groups above are composited
+     (`btnShine`, `hmDriftNext/Prev`, `gleamShimmer`, `gleamBreathe`): the browser used to
+     run them on the compositor with no main-thread work per frame at all, and this takes
+     them over, which moves a per-frame cost from the compositor ONTO the main thread as a
+     JS seek — 24 seeks per second per adopted animation, against the display-rate
+     compositor update they had before. For the AMBIENT, LONG-DURATION loops that is a
+     clear win in update count (2.5× fewer on a 60Hz screen, 6× on a 144Hz one) and it puts
+     every authored effect on ONE clock. For the two short composited loops on a screen
+     that is otherwise idle it may be a wash or slightly worse in raw CPU, and that is the
+     price of "cap everything" rather than "cap what is expensive" — taken on the owner's
+     explicit instruction, not discovered afterwards. */
+
   /* ------------------------------------------------------------ 5. THE VISIBLE BAND */
   /* ⛔⛔ WHAT THIS ANSWERS: which slice of THIS document the visitor can actually see —
      inside a store embed that is the slice of the page the buyer's parent frame is
@@ -9472,6 +9804,12 @@ html.dark .hero-copy-card:hover {
     docSizeW = Math.max(document.documentElement.scrollWidth || 0, body.scrollWidth || 0);
     AFMP.docW = docSizeW;
     AFMP.docH = docSizeH;
+    /* ⛔ AND THE 24Hz CAP ADOPTS NEW ANIMATIONS ON THE SAME BEAT. This is the page's one
+       "the layout changed" signal that fires on a coalesced frame — a tab panel opening,
+       an accordion, a carousel, a settled resize, the web font landing — and those are
+       exactly the moments a `display:none` subtree's animations come into existence. It
+       is NOT on the parent-scroll path, so a band move never pays for it. */
+    capAdopt();
     var need = Math.ceil(dh / SENT_STEP);
     if (need < 1) need = 1;
     if (need > SENT_MAX) need = SENT_MAX;
@@ -11840,13 +12178,30 @@ html { color-scheme: dark; }
  v.playbackRate=3.4722223333; v.defaultPlaybackRate=3.4722223333;
  v.addEventListener('loadedmetadata',function(){if(isFinite(v.duration)&&v.duration>0){v.playbackRate=v.duration/3;v.defaultPlaybackRate=v.duration/3;}});
  var letters=stage.querySelectorAll('.stroke-letter'),visible=false,done=false,ticket=null,replay=false,waiting=false,replayTimer=null;
+ /* ⛔ THE WORDMARK'S PER-FRAME WRITE IS SAMPLED AT 24Hz (owner, 2026-10-11: *"cap authored
+    JS visual writes progressbar/wordmark callbacks at24Hz while keeping media time
+    alignment by sampling current latest state"*).
+    ⛔ WHAT WAS HAPPENING: `sync()` toggles `is-finished` on eleven letters, and it was
+    called from `requestVideoFrameCallback` — so it wrote to the DOM once per frame of the
+    CLIP. That is the media's own rate, which this page may not change.
+    ⛔ WHAT CHANGED IS ONLY THE WRITE, NOT THE CLOCK: the frame callback still arrives, the
+    stage still owns the same ticket, and `sync()` still reads `v.currentTime` at the moment
+    it runs — so it samples the LATEST media time rather than a remembered one, and the
+    letters can trail the stroke by at most one 41.67ms tick. Nothing seeks the video,
+    nothing changes its `playbackRate`, and no Promise from a frame callback is left
+    unsettled. The other callers of `sync()` (`timeupdate` at ~4/s, `seeked`, `gate()`, the
+    replay path) are all already at or below 24Hz and still run it immediately: a seek or a
+    state change is not a frame cadence and must not be delayed. */
+ var syncStamp=-1;
+ function syncDue(){var t=(window.performance&&performance.now)?performance.now():Date.now();
+  if(syncStamp>=0&&t-syncStamp<41.666666666666664-1e-6)return false;syncStamp=t;return true;}
  var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  function sync(){var active=-1;if(replay){for(var j=0;j<letters.length;j++){if(v.currentTime+0.001<Number(letters[j].dataset.finish)){active=j;break;}}}for(var i=0;i<letters.length;i++)letters[i].classList.toggle('is-finished',replay?i!==active:v.currentTime+0.001>=Number(letters[i].dataset.finish));}
  function alignClip(){var text=stage.querySelector('.brand-title-text'),style=getComputedStyle(text),r=text.getBoundingClientRect(),base=stage.getBoundingClientRect(),size=parseFloat(style.fontSize),ctx=document.createElement('canvas').getContext('2d');ctx.font=style.fontWeight+' '+style.fontSize+' '+style.fontFamily;var m=ctx.measureText('A'),fa=m.fontBoundingBoxAscent||size*.95,fd=m.fontBoundingBoxDescent||size*.25,baseline=(r.height-fa-fd)/2+fa,ink=m.actualBoundingBoxAscent||size*.72,scale=(ink/402)*0.975;v.style.width=(5738*scale)+'px';v.style.left=(r.left-base.left-(m.actualBoundingBoxLeft||0)-157*scale+size*.04)+'px';v.style.top=(r.top-base.top+baseline-ink-303*scale)+'px';v.style.transform='none';}
  alignClip();window.addEventListener('resize',alignClip,{passive:true});if(document.fonts)document.fonts.ready.then(alignClip);
  if(window.ResizeObserver){var titleSizeObserver=new ResizeObserver(alignClip);titleSizeObserver.observe(stage.querySelector('.brand-title-text'));}
  v.addEventListener('loadedmetadata',alignClip);
- function frames(){ticket=null;sync();if(!v.paused&&!done&&v.requestVideoFrameCallback)ticket=v.requestVideoFrameCallback(frames);}
+ function frames(){ticket=null;if(syncDue())sync();if(!v.paused&&!done&&v.requestVideoFrameCallback)ticket=v.requestVideoFrameCallback(frames);}
  function stop(){v.pause();if(ticket!==null&&v.cancelVideoFrameCallback)v.cancelVideoFrameCallback(ticket);ticket=null;}
  function gate(){if(reduced||done)return;if(!visible||document.hidden){stop();if(replayTimer!==null){clearTimeout(replayTimer);replayTimer=null;}return;}if(waiting){if(replayTimer===null)replayTimer=setTimeout(function(){replayTimer=null;if(!visible||document.hidden)return;waiting=false;replay=true;v.playbackRate=(isFinite(v.duration)&&v.duration>0?v.duration:10.416667)/6;v.currentTime=0;sync();gate();},2000);return;}sync();stage.classList.add('is-drawing');v.play().then(function(){if(!visible||document.hidden){stop();return;}if(ticket===null&&v.requestVideoFrameCallback)ticket=v.requestVideoFrameCallback(frames);}).catch(function(){stage.classList.remove('is-drawing');});}
  v.addEventListener('timeupdate',sync);v.addEventListener('seeked',sync);
